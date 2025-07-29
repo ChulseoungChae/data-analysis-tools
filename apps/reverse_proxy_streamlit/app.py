@@ -522,7 +522,7 @@ with st.sidebar:
         margin: 10px 0;
     ">
         <div style="text-align: center;">
-            <a href="https://github.com/your-username/reverse-proxy-streamlit" 
+            <a href="https://github.com/ChulseoungChae/data-analysis-tools/tree/main/apps/reverse_proxy_streamlit" 
                target="_blank" 
                style="
                    color: #00d4aa;
