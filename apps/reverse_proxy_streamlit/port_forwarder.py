@@ -37,14 +37,17 @@ class PortForwarder:
             return False
         
         try:
-            forward_thread = ForwardThread(external_port, target_host, target_port)
+            # LLM 서비스 감지 (일반적인 LLM 포트들)
+            is_llm_service = target_port in [7860, 8080, 3000, 5000, 8000, 8501]
+            
+            forward_thread = ForwardThread(external_port, target_host, target_port, is_llm_service)
             forward_thread.start()
             
             # 스레드가 실제로 시작될 때까지 잠시 대기
             time.sleep(0.1)
             
             self.active_forwards[external_port] = forward_thread
-            logger.info(f"포트포워딩 시작: {external_port} -> {target_host}:{target_port}")
+            logger.info(f"포트포워딩 시작: {external_port} -> {target_host}:{target_port} (LLM 최적화: {is_llm_service})")
             return True
         except Exception as e:
             logger.error(f"포트포워딩 시작 실패: {e}")
@@ -116,7 +119,7 @@ class PortForwarder:
 
 
 class ForwardThread(threading.Thread):
-    def __init__(self, external_port, target_host, target_port):
+    def __init__(self, external_port, target_host, target_port, is_llm_service=False):
         super().__init__()
         self.external_port = external_port
         self.target_host = target_host
@@ -125,10 +128,17 @@ class ForwardThread(threading.Thread):
         self.connection_count = 0
         self.server_socket = None
         self.daemon = True
+        self.is_llm_service = is_llm_service
         
         # 성능 최적화 설정
-        self.buffer_size = 8192
-        self.timeout = 30
+        if self.is_llm_service:
+            # LLM 서비스용 최적화 설정
+            self.buffer_size = 131072  # 128KB
+            self.timeout = 600  # 10분
+        else:
+            # 일반 서비스용 설정
+            self.buffer_size = 65536  # 64KB
+            self.timeout = 300  # 5분
     
     def run(self):
         """포트포워딩 스레드 실행"""
@@ -187,7 +197,7 @@ class ForwardThread(threading.Thread):
 
 
 class ConnectionHandler(threading.Thread):
-    def __init__(self, client_socket, client_addr, target_host, target_port, connection_id, buffer_size=8192, timeout=30):
+    def __init__(self, client_socket, client_addr, target_host, target_port, connection_id, buffer_size=65536, timeout=300):  # 8KB → 64KB
         super().__init__()
         self.client_socket = client_socket
         self.client_addr = client_addr

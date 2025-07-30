@@ -1124,20 +1124,20 @@ with tab5:
 if st.button("🔄 새로고침"):
     st.rerun()
 
-# 자동 새로고침 (더 안정적인 방식)
-if 'last_refresh' not in st.session_state:
-    st.session_state.last_refresh = time.time()
+# 자동 새로고침 비활성화 (LLM 채팅 연결 안정성을 위해)
+# if 'last_refresh' not in st.session_state:
+#     st.session_state.last_refresh = time.time()
 
-# 15초마다 새로고침 (더 긴 간격으로 안정성 향상)
-current_time = time.time()
-if current_time - st.session_state.last_refresh > 15:
-    st.session_state.last_refresh = current_time
-    # 새로고침 전에 상태 확인
-    try:
-        # 포트포워딩 상태 확인
-        forwarder_status = st.session_state.port_forwarder.get_status()
-        if not forwarder_status['is_running']:
-            st.session_state.port_forwarder.start_all_forwards()
-    except:
-        pass
-    st.rerun() 
+# # 15초마다 새로고침 (더 긴 간격으로 안정성 향상)
+# current_time = time.time()
+# if current_time - st.session_state.last_refresh > 15:
+#     st.session_state.last_refresh = current_time
+#     # 새로고침 전에 상태 확인
+#     try:
+#         # 포트포워딩 상태 확인
+#         forwarder_status = st.session_state.port_forwarder.get_status()
+#         if not forwarder_status['is_running']:
+#             st.session_state.port_forwarder.start_all_forwards()
+#     except:
+#         pass
+#     st.rerun() 
